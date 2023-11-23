@@ -1,0 +1,53 @@
+---
+- hosts: user
+  become: true
+  vars:
+   users:
+        - user
+        - user1
+        - user2
+        - user3
+        - user4  
+
+
+  tasks:
+   
+    - name: create multiple user
+      user:
+        name: "{{ item }}"
+        group: ubuntu
+        state: present
+        password: "{{ 'q' | password_hash('sha512') }}"
+        update_password: on_create
+        groups: sudo
+        append: yes
+        shell: /bin/bash
+      with_items:  "{{ users }}"
+       
+    - name: "add authorized keys"
+      authorized_key:
+        user: "{{ item }}"
+        key: "{{lookup ('file', 'id_rsa.pub' )}}"
+      with_items:  "{{ users }}"
+     
+    - name: "Allow admin users to sudo without a password"
+      lineinfile:
+        dest: "/etc/sudoers.d/init-users"
+        state: absent
+        regexp: "vishnu"
+        #line: "vishnu ALL=(ALL) NOPASSWD:ALL"
+      #with_items:  "{{ users }}"
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
